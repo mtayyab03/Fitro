@@ -161,9 +161,9 @@ const styles = StyleSheet.create({
   giftIcon: {
     position: "absolute",
     right: 20,
-    bottom: 3,
-    width: 60,
-    height: 60,
+    bottom: 8,
+    width: 50,
+    height: 50,
   },
 
   gradientContainer: {

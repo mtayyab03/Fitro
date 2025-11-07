@@ -45,4 +45,6 @@ export const Colors = {
   bgBlue: "#002060",
   bgBlack: "#030B1C",
   textColor: "#BACDF4",
+  tabColor: "#5A70F6",
+  nonActiveTab: "#416A88",
 };

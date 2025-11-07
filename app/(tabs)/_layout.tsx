@@ -1,6 +1,7 @@
 import { HapticTab } from "@/components/haptic-tab";
+import { Colors } from "@/constants/Colors";
+import { FontFamily } from "@/constants/font";
 import icons from "@/constants/icons";
-import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Tabs } from "expo-router";
 import React from "react";
@@ -14,7 +15,8 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: Colors.tabColor,
+        tabBarInactiveTintColor: Colors.nonActiveTab,
         tabBarButton: HapticTab,
         tabBarStyle: {
           height: 85,
@@ -25,6 +27,7 @@ export default function TabLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 12,
+          fontFamily: FontFamily.FigsemiBold,
         },
       }}
     >
@@ -34,15 +37,32 @@ export default function TabLayout() {
         options={{
           title: "Histoire",
           tabBarIcon: ({ focused }) => (
-            <Image
-              source={icons.history}
-              style={styles.icon}
-              resizeMode="contain"
-            />
+            <View style={{ alignItems: "center" }}>
+              <Image
+                source={icons.history}
+                style={styles.icon}
+                resizeMode="contain"
+              />
+
+              {/* {focused && (
+                <View
+                  style={{
+                    position: "absolute",
+                    bottom: -40, // just below icon/label
+                    width: 30,
+                    height: 5,
+                    borderTopLeftRadius: RFPercentage(1),
+                    borderTopRightRadius: RFPercentage(1),
+                    backgroundColor: Colors.tabColor,
+                  }}
+                />
+              )} */}
+            </View>
           ),
           tabBarLabelStyle: {
             fontSize: 12,
-            marginTop: 6, // move text a bit lower
+            marginTop: 10, // move text a bit lower
+            fontFamily: FontFamily.FigsemiBold,
           },
           tabBarIconStyle: {
             marginTop: 8, // move icon slightly lower
@@ -66,7 +86,8 @@ export default function TabLayout() {
           ),
           tabBarLabelStyle: {
             fontSize: 12,
-            marginTop: 10, // pushes label further down
+            marginTop: 12, // pushes label further down
+            fontFamily: FontFamily.FigsemiBold,
           },
         }}
       />
@@ -85,7 +106,8 @@ export default function TabLayout() {
           ),
           tabBarLabelStyle: {
             fontSize: 12,
-            marginTop: 6, // move text a bit lower
+            marginTop: 10, // move text a bit lower
+            fontFamily: FontFamily.FigsemiBold,
           },
           tabBarIconStyle: {
             marginTop: 8, // move icon slightly lower
@@ -98,8 +120,8 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   icon: {
-    width: 38,
-    height: 38,
+    width: 48,
+    height: 48,
   },
   centerIconWrapper: {
     backgroundColor: "#fff",

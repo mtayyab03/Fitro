@@ -4,10 +4,10 @@ import { fontSize } from "@/constants/fontUtils";
 import icons from "@/constants/icons";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
-  Easing,
+  Dimensions,
   ImageBackground,
   StyleSheet,
   Text,
@@ -19,9 +19,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // compoenets
 import ProgressBar3D from "@/components/common/ProgressBar3D";
 import TopBar from "@/components/common/TopBar";
-
+const { width } = Dimensions.get("window");
 const History = () => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
   const totalSections = 5;
   const progressPercent = Math.min(Math.max(0.35 * 100, 0), 100); // keep as number
 
@@ -32,24 +31,39 @@ const History = () => {
     { id: 4, title: "Zorina", image: icons.island2 },
   ];
 
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Separate scale animation for each island
+  const scaleAnims = useRef(islands.map(() => new Animated.Value(1))).current;
+
+  const triggerAnimation = (index: number) => {
+    Animated.sequence([
+      Animated.timing(scaleAnims[index], {
+        toValue: 1.2,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnims[index], {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  // Play animation for the first island on mount
   useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(scaleAnim, {
-          toValue: 1.2, // scale up slightly (image goes outside gradient)
-          duration: 1200,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1, // back to normal
-          duration: 1200,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  }, [scaleAnim]);
+    triggerAnimation(0);
+  }, []);
+
+  const handleScrollEnd = (e: any) => {
+    const index = Math.round(e.nativeEvent.contentOffset.x / width);
+    if (index !== activeIndex) {
+      setActiveIndex(index);
+      triggerAnimation(index);
+    }
+  };
   return (
     <ImageBackground
       source={icons.bg}
@@ -69,82 +83,136 @@ const History = () => {
         <Text style={styles.title}>Choisis ton île !</Text>
         {/* Island card */}
 
-        <View style={styles.outerCard}>
-          <View style={styles.card}>
-            <LinearGradient
-              colors={["#E6F8CF", "#B4E6C1"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.gradientContainer}
-            />
+        <View
+          style={{
+            alignItems: "center",
+            height: RFPercentage(48),
+          }}
+        >
+          <Animated.ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+              { useNativeDriver: false }
+            )}
+            onMomentumScrollEnd={handleScrollEnd}
+            scrollEventThrottle={16}
+            contentContainerStyle={{ flexGrow: 0 }}
+          >
+            {islands.map((island, index) => {
+              const scale = scaleAnims[index] || new Animated.Value(1); // fallback
 
-            {/* Animated island floating ABOVE the gradient */}
-            <Animated.Image
-              source={icons.island2}
-              style={[
-                styles.islandImage,
-                {
-                  transform: [
-                    { scale: scaleAnim },
-                    {
-                      translateY: scaleAnim.interpolate({
-                        inputRange: [1, 1.4],
-                        outputRange: [0, -12],
-                      }),
-                    },
-                  ],
-                },
-              ]}
-              resizeMode="contain"
-            />
-            <View style={styles.cardFooter}>
-              <Text style={styles.cardTitle}>Monde</Text>
-              <View style={styles.radioContainer}>
-                {/* Rewards */}
-                <LinearGradient
-                  colors={["#EAEFF4", "#CFDDE8"]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.CoinstatBox}
+              return (
+                <View
+                  key={island.id}
+                  style={{
+                    width,
+                    alignItems: "center",
+                    height: RFPercentage(20),
+                  }}
                 >
-                  <LinearGradient
-                    colors={["#FFFFFF", "#F5F8FA"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.statBox}
-                  >
-                    <LinearGradient
-                      colors={["#5FBF81", "#93D94D"]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
-                      style={styles.radio}
-                    >
-                      <Ionicons
-                        name="checkmark"
-                        size={18}
-                        color={Colors.white}
+                  <View style={styles.outerCard}>
+                    <View style={styles.card}>
+                      <LinearGradient
+                        colors={["#E6F8CF", "#B4E6C1"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={styles.gradientContainer}
                       />
-                    </LinearGradient>
-                  </LinearGradient>
-                </LinearGradient>
-              </View>
-            </View>
+
+                      {/* Animated Island */}
+                      <Animated.Image
+                        source={island.image}
+                        style={[
+                          styles.islandImage,
+                          {
+                            transform: [
+                              { scale },
+                              {
+                                translateY: scale.interpolate({
+                                  inputRange: [1, 1.4],
+                                  outputRange: [0, -12],
+                                }),
+                              },
+                              {
+                                translateX: scale.interpolate({
+                                  inputRange: [1, 1.4],
+                                  outputRange: [0, 8],
+                                }),
+                              },
+                            ],
+                          },
+                        ]}
+                        resizeMode="contain"
+                      />
+
+                      {/* Footer */}
+                      <View style={styles.cardFooter}>
+                        <Text style={styles.cardTitle}>{island.title}</Text>
+                        <LinearGradient
+                          colors={["#EAEFF4", "#CFDDE8"]}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                          style={styles.CoinstatBox}
+                        >
+                          <LinearGradient
+                            colors={["#FFFFFF", "#F5F8FA"]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.statBox}
+                          >
+                            <LinearGradient
+                              colors={["#5FBF81", "#93D94D"]}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 1 }}
+                              style={styles.radio}
+                            >
+                              <Ionicons
+                                name="checkmark"
+                                size={18}
+                                color={Colors.white}
+                              />
+                            </LinearGradient>
+                          </LinearGradient>
+                        </LinearGradient>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+          </Animated.ScrollView>
+
+          {/* Dots */}
+          <View style={styles.pageDots}>
+            {islands.map((_, i) => {
+              const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
+
+              const dotWidth = scrollX.interpolate({
+                inputRange,
+                outputRange: [10, 30, 10],
+                extrapolate: "clamp",
+              });
+
+              const dotColor = scrollX.interpolate({
+                inputRange,
+                outputRange: [Colors.white, Colors.primary, Colors.white],
+                extrapolate: "clamp",
+              });
+
+              return (
+                <Animated.View
+                  key={i}
+                  style={[
+                    styles.dot,
+                    { width: dotWidth, backgroundColor: dotColor },
+                  ]}
+                />
+              );
+            })}
           </View>
-        </View>
-        {/* Page indicator */}
-        <View style={styles.pageDots}>
-          {[1, 2, 3, 4].map((i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                i === 1 && {
-                  backgroundColor: Colors.primary,
-                  width: RFPercentage(2.3),
-                },
-              ]}
-            />
-          ))}
         </View>
       </SafeAreaView>
     </ImageBackground>
@@ -249,13 +317,12 @@ const styles = StyleSheet.create({
   pageDots: {
     flexDirection: "row",
     justifyContent: "center",
-    marginTop: 20,
     gap: 6,
   },
   dot: {
-    width: RFPercentage(1.2),
-    height: RFPercentage(1.2),
-    borderRadius: RFPercentage(1),
+    width: RFPercentage(1.7),
+    height: RFPercentage(1.4),
+    borderRadius: RFPercentage(2),
     backgroundColor: Colors.white,
   },
 });
