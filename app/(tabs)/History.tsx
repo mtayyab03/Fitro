@@ -2,23 +2,35 @@ import { Colors } from "@/constants/Colors";
 import { FontFamily } from "@/constants/font";
 import { fontSize } from "@/constants/fontUtils";
 import icons from "@/constants/icons";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
   Easing,
-  Image,
   ImageBackground,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { RFPercentage } from "react-native-responsive-fontsize";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const ChooseIslandScreen = () => {
+// compoenets
+import ProgressBar3D from "@/components/common/ProgressBar3D";
+import TopBar from "@/components/common/TopBar";
+
+const History = () => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const totalSections = 5;
+  const progressPercent = Math.min(Math.max(0.35 * 100, 0), 100); // keep as number
+
+  const islands = [
+    { id: 1, title: "Monde", image: icons.island2 },
+    { id: 2, title: "Rondo", image: icons.island2 },
+    { id: 3, title: "Lawando", image: icons.island2 },
+    { id: 4, title: "Zorina", image: icons.island2 },
+  ];
 
   useEffect(() => {
     Animated.loop(
@@ -45,39 +57,18 @@ const ChooseIslandScreen = () => {
       style={styles.container}
     >
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Top bar */}
-        <View style={styles.topBar}>
-          <TouchableOpacity style={styles.invertButton}>
-            <Image source={icons.invert} style={{ width: 20, height: 20 }} />
-          </TouchableOpacity>
-
-          <View style={styles.statContainer}>
-            <View style={styles.statBox}>
-              <Image source={icons.coin} style={styles.iconSmall} />
-              <Text style={styles.statText}>127</Text>
-            </View>
-
-            <View style={styles.statBox}>
-              <Image source={icons.reward} style={styles.iconSmall} />
-              <Text style={styles.statText}>15</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Progress bar */}
-        <View style={styles.progressContainer}>
-          <Image
-            source={icons.progress}
-            style={styles.progressImg}
-            resizeMode="stretch"
-          />
-          <Image source={icons.gift} style={styles.giftIcon} />
-        </View>
-
-        {/* Title */}
+        <TopBar
+          coins={127}
+          rewards={15}
+          onInvertPress={() => console.log("Invert pressed")}
+        />
+        <ProgressBar3D
+          progressPercent={progressPercent}
+          totalSections={totalSections}
+        />
         <Text style={styles.title}>Choisis ton île !</Text>
-
         {/* Island card */}
+
         <View style={styles.outerCard}>
           <View style={styles.card}>
             <LinearGradient
@@ -109,18 +100,49 @@ const ChooseIslandScreen = () => {
             <View style={styles.cardFooter}>
               <Text style={styles.cardTitle}>Monde</Text>
               <View style={styles.radioContainer}>
-                <TouchableOpacity style={styles.radio} />
+                {/* Rewards */}
+                <LinearGradient
+                  colors={["#EAEFF4", "#CFDDE8"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.CoinstatBox}
+                >
+                  <LinearGradient
+                    colors={["#FFFFFF", "#F5F8FA"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.statBox}
+                  >
+                    <LinearGradient
+                      colors={["#5FBF81", "#93D94D"]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.radio}
+                    >
+                      <Ionicons
+                        name="checkmark"
+                        size={18}
+                        color={Colors.white}
+                      />
+                    </LinearGradient>
+                  </LinearGradient>
+                </LinearGradient>
               </View>
             </View>
           </View>
         </View>
-
         {/* Page indicator */}
         <View style={styles.pageDots}>
           {[1, 2, 3, 4].map((i) => (
             <View
               key={i}
-              style={[styles.dot, i === 1 && { backgroundColor: "#2B2B2B" }]}
+              style={[
+                styles.dot,
+                i === 1 && {
+                  backgroundColor: Colors.primary,
+                  width: RFPercentage(2.3),
+                },
+              ]}
             />
           ))}
         </View>
@@ -129,61 +151,24 @@ const ChooseIslandScreen = () => {
   );
 };
 
-export default ChooseIslandScreen;
+export default History;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginTop: 10,
-    alignItems: "center",
-  },
-  invertButton: {
-    backgroundColor: "#E7ECF0",
-    borderRadius: 10,
-    padding: 10,
-  },
-  statContainer: { flexDirection: "row", gap: 10 },
-  statBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  statText: { fontWeight: "600", marginLeft: 4 },
-  iconSmall: { width: 20, height: 20 },
-  progressContainer: {
-    alignSelf: "center",
-    marginTop: 15,
-    position: "relative",
-  },
+
   progressImg: {
     width: 250,
     height: 25,
     borderRadius: 12,
   },
-  giftIcon: {
-    position: "absolute",
-    right: -10,
-    top: -8,
-    width: 35,
-    height: 35,
-  },
+
   title: {
     textAlign: "center",
     fontSize: fontSize(30),
     fontFamily: FontFamily.bold,
     color: Colors.primary,
-    marginTop: RFPercentage(6),
-    marginBottom: RFPercentage(2),
+    marginTop: RFPercentage(7),
+    marginBottom: RFPercentage(1),
   },
 
   card: {
@@ -198,7 +183,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     backgroundColor: "#CFDDE8",
     borderRadius: 20,
-    width: "75%",
+    width: "85%",
     paddingBottom: RFPercentage(1.5),
     marginTop: 20,
     shadowColor: "#000",
@@ -209,7 +194,7 @@ const styles = StyleSheet.create({
   gradientContainer: {
     borderRadius: 20,
     width: "100%",
-    height: RFPercentage(25),
+    height: RFPercentage(30),
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -219,22 +204,46 @@ const styles = StyleSheet.create({
   },
   islandImage: {
     position: "absolute",
-    width: RFPercentage(35),
-    height: RFPercentage(28),
+    width: RFPercentage(40),
+    height: RFPercentage(33),
   },
+
   cardFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: RFPercentage(2),
   },
-  cardTitle: { fontSize: 18, fontWeight: "700", color: "#2B2B2B" },
+  cardTitle: {
+    fontSize: fontSize(24),
+    fontFamily: FontFamily.bold,
+    color: Colors.primary,
+    marginHorizontal: RFPercentage(1),
+  },
   radioContainer: { flexDirection: "row" },
   radio: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#56C596",
+    width: RFPercentage(3),
+    height: RFPercentage(3),
+    borderRadius: RFPercentage(4),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  CoinstatBox: {
+    alignItems: "center",
+    borderRadius: RFPercentage(3),
+    paddingBottom: RFPercentage(0.5),
+    padding: RFPercentage(0.2),
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  statBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: RFPercentage(3),
+    padding: 4,
+    justifyContent: "center",
   },
 
   pageDots: {
@@ -244,37 +253,9 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#D0D0D0",
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    paddingVertical: 10,
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-  },
-  navItem: { alignItems: "center" },
-  navIcon: { width: 26, height: 26 },
-  navProfile: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginBottom: -5,
-  },
-  navCenter: {
-    marginTop: -20,
-  },
-  navText: {
-    fontSize: 12,
-    color: "#2B2B2B",
-    marginTop: 4,
+    width: RFPercentage(1.2),
+    height: RFPercentage(1.2),
+    borderRadius: RFPercentage(1),
+    backgroundColor: Colors.white,
   },
 });
